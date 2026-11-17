@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misi Kosmik | Muhammad Faishal - Astronot Digital & Web Developer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Space Grotesk & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        space: {
+                            950: '#04060e',
+                            900: '#090d1f',
+                            800: '#111836',
+                        },
+                        cosmic: {
+                            cyan: '#00f0ff',
+                            purple: '#9d4edd',
+                            gold: '#ffd166',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'float-slow': 'float 9s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 25s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-18px) rotate(2.5deg)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 0.5, transform: 'scale(1)' },
+                            '50%': { opacity: 0.9, transform: 'scale(1.05)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Kustomisasi Scrollbar & Efek Khusus Luar Angkasa */
+        body {
+            background-color: #04060e;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #04060e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 9999px;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f0ff;
+        }
+
+        /* Glassmorphism Space Card */
+        .space-glass {
+            background: rgba(13, 19, 43, 0.55);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+        }
+
+        .space-glass-hover {
+            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .space-glass-hover:hover {
+            border-color: rgba(0, 240, 255, 0.45);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.15), inset 0 0 15px rgba(0, 240, 255, 0.05);
+            transform: translateY(-4px);
+        }
+
+        /* Efek Cahaya Kursor Bintang */
+        #cursor-glow {
+            pointer-events: none;
+            position: fixed;
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.09) 0%, rgba(157, 78, 221, 0.05) 40%, rgba(4, 6, 14, 0) 70%);
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Latar Nebula Halus */
+        .nebula-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: 
+                radial-gradient(circle at 15% 20%, rgba(157, 78, 221, 0.14) 0%, transparent 45%),
+                radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.11) 0%, transparent 45%),
+                radial-gradient(circle at 50% 85%, rgba(255, 209, 102, 0.07) 0%, transparent 50%);
+        }
+
+        /* Scanline halus pada ID Card */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0, 240, 255, 0.03) 50%,
+                rgba(0, 240, 255, 0.03)
+            );
+            background-size: 100% 4px;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-cosmic-cyan selection:text-space-950">
+
+    <!-- Canvas Bintang Berkelip & Bintang Jatuh -->
+    <canvas id="starfield-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+    
+    <!-- Latar Belakang Nebula -->
+    <div class="nebula-bg"></div>
+
+    <!-- Efek Kursor Cahaya Bintang -->
+    <div id="cursor-glow" class="hidden md:block"></div>
+
+    <!-- 1. NAVIGASI MENGAMBANG (GLASSMORPHISM) -->
+    <header class="fixed top-4 left-0 right-0 z-50 px-4 sm:px-6">
+        <nav class="max-w-6xl mx-auto space-glass rounded-2xl px-4 sm:px-6 py-3 flex items-center justify-between border border-white/10">
+            <!-- Logo Misi Luar Angkasa -->
+            <a href="#launchpad" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cosmic-cyan/20 to-cosmic-purple/30 border border-cosmic-cyan/40 flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform">
+                    <svg class="w-6 h-6 text-cosmic-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <span class="font-display font-bold text-white tracking-wider text-base sm:text-lg block leading-none">ISAL<span class="text-cosmic-cyan">.ORBIT</span></span>
+                    <span class="font-mono text-[10px] text-slate-400 tracking-widest uppercase">SIJA-MISSION // 01</span>
+                </div>
+            </a>
+
+            <!-- Menu Desktop -->
+            <ul class="hidden lg:flex items-center gap-1 text-sm font-medium">
+                <li><a href="#launchpad" class="nav-link px-3.5 py-2 rounded-xl text-slate-300 hover:text-cosmic-cyan hover:bg-white/5 transition">Launchpad</a></li>
+                <li><a href="#about" class="nav-link px-3.5 py-2 rounded-xl text-slate-300 hover:text-cosmic-cyan hover:bg-white/5 transition">Profil Astronot</a></li>
+                <li><a href="#arsenal" class="nav-link px-3.5 py-2 rounded-xl text-slate-300 hover:text-cosmic-cyan hover:bg-white/5 transition">Tech Arsenal</a></li>
+                <li><a href="#missions" class="nav-link px-3.5 py-2 rounded-xl text-slate-300 hover:text-cosmic-cyan hover:bg-white/5 transition">Mission Logs</a></li>
+                <li><a href="#transmit" class="ml-2 px-4 py-2 rounded-xl bg-cosmic-cyan/15 text-cosmic-cyan border border-cosmic-cyan/40 hover:bg-cosmic-cyan hover:text-space-950 font-semibold transition flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-cosmic-cyan animate-ping"></span>
+                    Transmit Signal
+                </a></li>
+            </ul>
+
+            <!-- Tombol Menu Mobile -->
+            <button id="mobile-menu-btn" aria-label="Buka Menu Navigasi" class="lg:hidden p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 hover:text-cosmic-cyan focus:outline-none">
+                <svg id="menu-icon-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+                <svg id="menu-icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </nav>
+
+        <!-- Dropdown Menu Mobile -->
+        <div id="mobile-menu" class="hidden lg:hidden max-w-6xl mx-auto mt-2 space-glass rounded-2xl p-4 border border-white/10">
+            <ul class="flex flex-col gap-2 text-sm font-medium">
+                <li><a href="#launchpad" class="mobile-nav-link block px-4 py-3 rounded-xl text-slate-200 hover:bg-white/10 hover:text-cosmic-cyan">🚀 Beranda (Launchpad)</a></li>
+                <li><a href="#about" class="mobile-nav-link block px-4 py-3 rounded-xl text-slate-200 hover:bg-white/10 hover:text-cosmic-cyan">👨‍🚀 Profil Astronot (About)</a></li>
+                <li><a href="#arsenal" class="mobile-nav-link block px-4 py-3 rounded-xl text-slate-200 hover:bg-white/10 hover:text-cosmic-cyan">🛰️ Keahlian & Teknologi (Tech Arsenal)</a></li>
+                <li><a href="#missions" class="mobile-nav-link block px-4 py-3 rounded-xl text-slate-200 hover:bg-white/10 hover:text-cosmic-cyan">📁 Proyek Misi (Mission Logs)</a></li>
+                <li><a href="#transmit" class="mobile-nav-link block px-4 py-3 rounded-xl bg-cosmic-cyan/20 text-cosmic-cyan border border-cosmic-cyan/30 font-semibold text-center mt-1">📡 Kontak (Transmit Signal)</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- KONTEN UTAMA -->
+    <main class="relative z-10">
+
+        <!-- 2. HERO SECTION (LAUNCHPAD) -->
+        <section id="launchpad" class="min-h-screen flex items-center pt-28 pb-16 px-4 sm:px-6">
+            <div class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Kolom Kiri: Teks & CTA -->
+                <div class="lg:col-span-7 text-center lg:text-left space-y-6">
+                    <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full space-glass border border-cosmic-cyan/30 text-xs font-mono text-cosmic-cyan">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>STATUS TELEMETRI: ONLINE // SIAP MENGORBIT</span>
+                    </div>
+
+                    <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                        Menjelajahi Semesta <br class="hidden sm:block">
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cosmic-cyan via-purple-400 to-cosmic-gold">
+                            Kode & Infrastruktur
+                        </span>
+                    </h1>
+
+                    <div class="space-y-2">
+                        <p class="text-lg sm:text-xl font-medium text-slate-200">
+                            Halo, saya <span class="text-cosmic-gold font-bold">Muhammad Faishal</span> <span class="text-slate-400 font-mono text-base">(Isal)</span>
+                        </p>
+                        <p class="text-sm sm:text-base font-mono text-cosmic-cyan">
+                            &lt;Komandan Misi / Pelajar SIJA &amp; Web Developer /&gt;
+                        </p>
+                    </div>
+
+                    <p class="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                        Merancang aplikasi web modern, mengelola server Linux dengan presisi, serta membangun arsitektur jaringan yang tangguh untuk menembus batas inovasi digital.
+                    </p>
+
+                    <!-- Tombol CTA -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+                        <a href="#about" class="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-cosmic-cyan to-cyan-400 text-space-950 font-bold text-sm sm:text-base shadow-[0_0_25px_rgba(0,240,255,0.4)] hover:shadow-[0_0_35px_rgba(0,240,255,0.65)] hover:scale-[1.02] transition-all flex items-center justify-center gap-2.5">
+                            <span>Mulai Eksplorasi</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                        </a>
+
+                        <a href="#transmit" class="w-full sm:w-auto px-7 py-3.5 rounded-2xl space-glass border border-cosmic-purple/50 text-white hover:border-cosmic-cyan hover:text-cosmic-cyan font-semibold text-sm sm:text-base transition-all flex items-center justify-center gap-2.5">
+                            <svg class="w-5 h-5 text-cosmic-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                            </svg>
+                            <span>Kirim Sinyal</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: Ilustrasi Astronot Melayang Interaktif (SVG & CSS) -->
+                <div class="lg:col-span-5 flex justify-center items-center relative">
+                    <!-- Cincin Orbit Latar -->
+                    <div class="absolute w-72 h-72 sm:w-96 sm:h-96 rounded-full border border-dashed border-cosmic-cyan/25 animate-spin-slow"></div>
+                    <div class="absolute w-56 h-56 sm:w-72 sm:h-72 rounded-full border border-cosmic-purple/30 animate-pulse-glow"></div>
+
+                    <!-- Astronot Interaktif Container -->
+                    <div id="astronaut-interactive" class="relative z-10 w-64 sm:w-80 cursor-pointer select-none animate-float group" title="Klik untuk menyapa Astronot!">
+                        <!-- Balon Pesan Interaktif saat diklik -->
+                        <div id="astro-speech" class="opacity-0 scale-90 transition-all duration-300 absolute -top-8 right-0 sm:-right-4 space-glass border border-cosmic-gold/50 text-cosmic-gold font-mono text-xs px-3.5 py-2 rounded-xl shadow-lg pointer-events-none">
+                            "Sistem siap, Komandan! 🚀"
+                        </div>
+
+                        <!-- SVG Astronot Kustom -->
+                        <svg viewBox="0 0 320 340" class="w-full h-auto drop-shadow-[0_15px_35px_rgba(0,240,255,0.22)]">
+                            <defs>
+                                <linearGradient id="suitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffffff" />
+                                    <stop offset="60%" stop-color="#cbd5e1" />
+                                    <stop offset="100%" stop-color="#64748b" />
+                                </linearGradient>
+                                <linearGradient id="visorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#0f172a" />
+                                    <stop offset="50%" stop-color="#1e1b4b" />
+                                    <stop offset="100%" stop-color="#00f0ff" stop-opacity="0.75" />
+                                </linearGradient>
+                                <linearGradient id="goldVisor" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffd166" />
+                                    <stop offset="55%" stop-color="#f59e0b" />
+                                    <stop offset="100%" stop-color="#b45309" />
+                                </linearGradient>
+                            </defs>
+
+                            <!-- Planet Kecil & Bintang Orbit -->
+                            <circle cx="48" cy="70" r="14" fill="#9d4edd" opacity="0.85" />
+                            <ellipse cx="48" cy="70" rx="24" ry="5" fill="none" stroke="#00f0ff" stroke-width="1.5" transform="rotate(-20 48 70)" />
+                            <circle cx="275" cy="95" r="7" fill="#ffd166" opacity="0.9" />
+                            <path d="M265 245 L268 253 L276 256 L268 259 L265 267 L262 259 L254 256 L262 253 Z" fill="#00f0ff" />
+
+                            <!-- Jetpack / Ransel Oksigen -->
+                            <rect x="95" y="135" width="130" height="105" rx="22" fill="#334155" stroke="#00f0ff" stroke-width="2" />
+                            <rect x="105" y="145" width="110" height="85" rx="14" fill="#1e293b" />
+
+                            <!-- Kaki Kiri & Kanan -->
+                            <path d="M125 235 L112 292 C110 302 128 308 136 296 L152 242 Z" fill="url(#suitGrad)" />
+                            <path d="M195 235 L208 292 C210 302 192 308 184 296 L168 242 Z" fill="url(#suitGrad)" />
+                            <!-- Sepatu Bot Luar Angkasa -->
+                            <rect x="102" y="288" width="38" height="18" rx="9" fill="#0f172a" stroke="#00f0ff" stroke-width="1.5" />
+                            <rect x="180" y="288" width="38" height="18" rx="9" fill="#0f172a" stroke="#00f0ff" stroke-width="1.5" />
+
+                            <!-- Badan Utama -->
+                            <rect x="112" y="142" width="96" height="104" rx="32" fill="url(#suitGrad)" />
+                            <!-- Panel Kontrol Dada -->
+                            <rect x="134" y="164" width="52" height="38" rx="8" fill="#0f172a" stroke="#475569" stroke-width="2" />
+                            <circle cx="146" cy="176" r="4" fill="#00f0ff" />
+                            <circle cx="160" cy="176" r="4" fill="#ffd166" />
+                            <circle cx="174" cy="176" r="4" fill="#9d4edd" />
+                            <rect x="142" y="187" width="36" height="6" rx="3" fill="#00f0ff" opacity="0.6" />
+
+                            <!-- Sabuk -->
+                            <rect x="114" y="216" width="92" height="12" rx="6" fill="#1e293b" />
+                            <rect x="150" y="213" width="20" height="18" rx="4" fill="#ffd166" />
+
+                            <!-- Lengan Kiri (Melambai) -->
+                            <path d="M115 155 C82 145 68 118 78 98 C84 88 98 94 94 106 C88 120 100 132 120 138 Z" fill="url(#suitGrad)" />
+                            <circle cx="82" cy="96" r="11" fill="#1e293b" stroke="#00f0ff" stroke-width="1.5" />
+
+                            <!-- Lengan Kanan (Memegang Laptop/Tablet Hologram) -->
+                            <path d="M205 155 C235 165 245 188 228 202 C218 210 202 202 208 190 C216 178 206 172 198 168 Z" fill="url(#suitGrad)" />
+                            <circle cx="222" cy="198" r="11" fill="#1e293b" stroke="#00f0ff" stroke-width="1.5" />
+
+                            <!-- Helm Astronot -->
+                            <circle cx="160" cy="96" r="56" fill="url(#suitGrad)" stroke="#e2e8f0" stroke-width="2" />
+                            <!-- Antena Helm -->
+                            <line x1="208" y1="66" x2="226" y2="42" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" />
+                            <circle cx="228" cy="40" r="6" fill="#00f0ff" />
+
+                            <!-- Visor Kaca Helm -->
+                            <rect x="118" y="64" width="84" height="62" rx="30" fill="url(#visorGrad)" stroke="#00f0ff" stroke-width="2.5" />
+                            <!-- Pantulan Cahaya di Visor -->
+                            <path d="M132 76 C145 70 165 70 178 76" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.65" />
+                            <circle cx="184" cy="84" r="3" fill="#ffffff" opacity="0.7" />
+                            <!-- Kode Simbol di dalam Visor -->
+                            <text x="160" y="103" text-anchor="middle" fill="#00f0ff" font-family="monospace" font-size="14" font-weight="bold">&lt;/&gt;</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. PROFIL ASTRONOT (ABOUT) -->
+        <section id="about" class="py-20 px-4 sm:px-6">
+            <div class="max-w-6xl mx-auto">
+                <!-- Header Bagian -->
+                <div class="text-center max-w-2xl mx-auto mb-14 space-y-3">
+                    <span class="font-mono text-xs tracking-widest text-cosmic-cyan uppercase">// DATA PERSONEL MISI</span>
+                    <h2 class="font-display text-3xl sm:text-4xl font-bold text-white">Profil Astronot &amp; Log Penerbangan</h2>
+                    <p class="text-slate-400 text-sm sm:text-base">Identitas resmi komandan misi di balik pengembangan perangkat lunak dan rekayasa jaringan.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                    
+                    <!-- Kartu ID Astronot (Kiri) -->
+                    <div class="lg:col-span-5 space-glass scanlines rounded-3xl p-6 sm:p-8 border border-cosmic-cyan/30 relative overflow-hidden flex flex-col justify-between">
+                        <!-- Aksen Sudut Futuristik -->
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-cosmic-cyan/10 blur-2xl rounded-full"></div>
+                        
+                        <div>
+                            <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+                                <div>
+                                    <span class="text-[10px] font-mono text-cosmic-gold tracking-widest block">KARTU IDENTITAS KOSMIK</span>
+                                    <span class="font-display font-bold text-white text-lg">ID: ASTRO-SIJA-2026</span>
+                                </div>
+                                <span class="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 font-mono text-xs">
+                                    AKTIF
+                                </span>
+                            </div>
+
+                            <!-- Avatar & Info Singkat -->
+                            <div class="flex items-center gap-4 mb-6">
+                                <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-cosmic-cyan/30 via-cosmic-purple/30 to-space-900 border border-cosmic-cyan/50 flex items-center justify-center shrink-0">
+                                    <span class="font-display font-bold text-2xl text-white">MF</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-display font-bold text-xl text-white">Muhammad Faishal</h3>
+                                    <p class="text-cosmic-cyan font-mono text-xs mt-0.5">Callsign: ISAL</p>
+                                    <p class="text-slate-400 text-xs mt-1">Sistem Informatika, Jaringan &amp; Aplikasi (SIJA)</p>
+                                </div>
+                            </div>
+
+                            <!-- Detail Parameter Penerbangan -->
+                            <div class="space-y-3 font-mono text-xs bg-space-950/60 p-4 rounded-2xl border border-white/5">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">PANGKAT:</span>
+                                    <span class="text-white font-semibold">Junior Fullstack &amp; SysAdmin</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">ORBIT BASIS:</span>
+                                    <span class="text-white">Jawa Barat, Indonesia</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">MISI SAAT INI:</span>
+                                    <span class="text-cosmic-gold">Eksplorasi Web &amp; Cloud Server</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Barcode Dekoratif -->
+                        <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[10px] font-mono text-slate-500">
+                            <span>VERIFIED BY ORBITAL COMMAND</span>
+                            <div class="flex gap-0.5 h-5 items-end">
+                                <span class="w-1 h-5 bg-cosmic-cyan/60"></span>
+                                <span class="w-0.5 h-3 bg-cosmic-cyan/40"></span>
+                                <span class="w-1.5 h-5 bg-cosmic-cyan/70"></span>
+                                <span class="w-0.5 h-4 bg-cosmic-cyan/40"></span>
+                                <span class="w-1 h-5 bg-cosmic-cyan/60"></span>
+                                <span class="w-1.5 h-3 bg-cosmic-cyan/50"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cerita Perkenalan & Statistik Fokus (Kanan) -->
+                    <div class="lg:col-span-7 flex flex-col justify-between gap-6">
+                        <div class="space-glass rounded-3xl p-6 sm:p-8 border border-white/10 space-y-4">
+                            <h3 class="font-display text-2xl font-bold text-white flex items-center gap-2.5">
+                                <span class="text-cosmic-gold">✦</span> Log Perjalanan Komandan
+                            </h3>
+                            <p class="text-slate-300 leading-relaxed text-sm sm:text-base">
+                                Selamat datang di stasiun orbit pribadi saya! Saya <strong class="text-white">Muhammad Faishal (Isal)</strong>, seorang pelajar jurusan <span class="text-cosmic-cyan font-medium">Sistem Informatika, Jaringan, dan Aplikasi (SIJA)</span> yang memiliki ketertarikan mendalam pada bagaimana kode dan infrastruktur jaringan saling terhubung.
+                            </p>
+                            <p class="text-slate-300 leading-relaxed text-sm sm:text-base">
+                                Layaknya seorang astronot yang memetakan galaksi baru, saya senang membangun aplikasi web dinamis dari nol, mengonfigurasi server Linux agar berjalan stabil, hingga merancang solusi teknologi tepat guna untuk kebutuhan nyata.
+                            </p>
+                        </div>
+
+                        <!-- 3 Kartu Fokus Utama -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="space-glass space-glass-hover rounded-2xl p-5 border border-white/10">
+                                <div class="w-10 h-10 rounded-xl bg-cosmic-cyan/15 text-cosmic-cyan flex items-center justify-center mb-3">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                                    </svg>
+                                </div>
+                                <h4 class="font-display font-bold text-white text-base">Pengembangan Web</h4>
+                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Membangun antarmuka responsif dan sistem backend berbasis database.</p>
+                            </div>
+
+                            <div class="space-glass space-glass-hover rounded-2xl p-5 border border-white/10">
+                                <div class="w-10 h-10 rounded-xl bg-cosmic-purple/20 text-purple-300 flex items-center justify-center mb-3">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                                    </svg>
+                                </div>
+                                <h4 class="font-display font-bold text-white text-base">Jaringan &amp; Server</h4>
+                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Administrasi Linux server, manajemen layanan, dan topologi subnetting.</p>
+                            </div>
+
+                            <div class="space-glass space-glass-hover rounded-2xl p-5 border border-white/10">
+                                <div class="w-10 h-10 rounded-xl bg-cosmic-gold/15 text-cosmic-gold flex items-center justify-center mb-3">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                    </svg>
+                                </div>
+                                <h4 class="font-display font-bold text-white text-base">Eksplorasi Kode</h4>
+                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">Algoritma pemrograman, otomasi skrip, dan eksperimen teknologi baru.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. KEAHLIAN & TEKNOLOGI (TECH ARSENAL) -->
+        <section id="arsenal" class="py-20 px-4 sm:px-6">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center max-w-2xl mx-auto mb-14 space-y-3">
+                    <span class="font-mono text-xs tracking-widest text-cosmic-gold uppercase">// MODUL PESAWAT LUAR ANGKASA</span>
+                    <h2 class="font-display text-3xl sm:text-4xl font-bold text-white">Tech Arsenal &amp; Daya Energi</h2>
+                    <p class="text-slate-400 text-sm sm:text-base">Perangkat lunak, bahasa pemrograman, dan keahlian infrastruktur yang mendukung setiap misi.</p>
+                </div>
+
+                <!-- Grid Modul Teknologi -->
+                <div id="skills-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Diisi secara dinamis melalui JavaScript untuk interaktivitas -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. PROYEK MISI (MISSION LOGS / PORTFOLIO) -->
+        <section id="missions" class="py-20 px-4 sm:px-6">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+                    <div class="space-y-3">
+                        <span class="font-mono text-xs tracking-widest text-cosmic-cyan uppercase">// ARSIP LOG EKSPEDISI</span>
+                        <h2 class="font-display text-3xl sm:text-4xl font-bold text-white">Mission Logs &amp; Portofolio</h2>
+                        <p class="text-slate-400 text-sm sm:text-base max-w-xl">Rekam jejak misi pengembangan aplikasi, rekayasa jaringan, dan proyek inovasi sekolah.</p>
+                    </div>
+
+                    <!-- Filter Kategori -->
+                    <div id="project-filters" class="flex flex-wrap gap-2">
+                        <button data-filter="all" class="filter-btn active px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-cosmic-cyan text-space-950 transition">
+                            Semua Misi
+                        </button>
+                        <button data-filter="web" class="filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium space-glass text-slate-300 hover:text-white border border-white/10 transition">
+                            Web Dev
+                        </button>
+                        <button data-filter="network" class="filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium space-glass text-slate-300 hover:text-white border border-white/10 transition">
+                            Sistem &amp; Jaringan
+                        </button>
+                        <button data-filter="school" class="filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium space-glass text-slate-300 hover:text-white border border-white/10 transition">
+                            Proyek Sekolah
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grid Proyek -->
+                <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Kartu proyek dirender via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. KONTAK (TRANSMIT SIGNAL) -->
+        <section id="transmit" class="py-20 px-4 sm:px-6">
+            <div class="max-w-5xl mx-auto">
+                <div class="space-glass rounded-3xl p-6 sm:p-10 border border-cosmic-cyan/30 relative overflow-hidden">
+                    <!-- Cahaya Latar Dekoratif -->
+                    <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-cosmic-purple/20 blur-3xl rounded-full pointer-events-none"></div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start relative z-10">
+                        <!-- Info Terminal Kiri -->
+                        <div class="lg:col-span-5 space-y-6">
+                            <div>
+                                <span class="font-mono text-xs text-cosmic-cyan tracking-widest uppercase">// FREKUENSI KOMUNIKASI</span>
+                                <h2 class="font-display text-3xl font-bold text-white mt-2">Transmit Signal</h2>
+                                <p class="text-slate-300 text-sm mt-3 leading-relaxed">
+                                    Ingin berkolaborasi dalam proyek pengembangan web, diskusi infrastruktur jaringan, atau sekadar menyapa dari orbit lain? Kirimkan transmisi pesan ke stasiun saya.
+                                </p>
+                            </div>
+
+                            <!-- Koordinat Kontak -->
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-space-950/60 border border-white/5">
+                                    <div class="w-10 h-10 rounded-xl bg-cosmic-cyan/15 text-cosmic-cyan flex items-center justify-center shrink-0">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="text-[11px] font-mono text-slate-400 block">SALURAN EMAIL</span>
+                                        <span class="text-sm text-white font-medium truncate block">faishal.orbit@sija-dev.id</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-space-950/60 border border-white/5">
+                                    <div class="w-10 h-10 rounded-xl bg-cosmic-purple/20 text-purple-300 flex items-center justify-center shrink-0">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <span class="text-[11px] font-mono text-slate-400 block">KOORDINAT STASIUN</span>
+                                        <span class="text-sm text-white font-medium">Jawa Barat, Indonesia</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tautan Sosial Media -->
+                            <div>
+                                <span class="text-xs font-mono text-slate-400 block mb-3">JARINGAN RELAY SOSIAL:</span>
+                                <div class="flex gap-3">
+                                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="p-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-cosmic-cyan hover:border-cosmic-cyan/50 transition">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                                    </a>
+                                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="p-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-cosmic-cyan hover:border-cosmic-cyan/50 transition">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+                                    </a>
+                                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="p-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-cosmic-gold hover:border-cosmic-gold/50 transition">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Formulir Terminal Komunikasi (Kanan) -->
+                        <div class="lg:col-span-7 bg-space-950/80 rounded-2xl p-5 sm:p-7 border border-white/10 font-mono">
+                            <!-- Header Terminal -->
+                            <div class="flex items-center justify-between pb-4 mb-5 border-b border-white/10">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                                    <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                                    <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+                                    <span class="text-xs text-slate-400 ml-2">comms-terminal@isal-orbit:~</span>
+                                </div>
+                                <span class="text-[11px] text-cosmic-cyan">ENKRIPSI: AES-256</span>
+                            </div>
+
+                            <!-- Form -->
+                            <form id="signal-form" class="space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="sender-name" class="block text-xs text-slate-400 mb-1.5">&gt; NAMA PENGIRIM *</label>
+                                        <input type="text" id="sender-name" required placeholder="Contoh: Kapten Budi" class="w-full px-4 py-3 rounded-xl bg-space-900/90 border border-white/10 text-white text-sm focus:outline-none focus:border-cosmic-cyan transition">
+                                    </div>
+                                    <div>
+                                        <label for="sender-email" class="block text-xs text-slate-400 mb-1.5">&gt; FREKUENSI EMAIL *</label>
+                                        <input type="email" id="sender-email" required placeholder="nama@domain.com" class="w-full px-4 py-3 rounded-xl bg-space-900/90 border border-white/10 text-white text-sm focus:outline-none focus:border-cosmic-cyan transition">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="signal-subject" class="block text-xs text-slate-400 mb-1.5">&gt; SUBJEK TRANSMISI</label>
+                                    <input type="text" id="signal-subject" placeholder="Kolaborasi Proyek / Pertanyaan Teknis" class="w-full px-4 py-3 rounded-xl bg-space-900/90 border border-white/10 text-white text-sm focus:outline-none focus:border-cosmic-cyan transition">
+                                </div>
+
+                                <div>
+                                    <label for="signal-message" class="block text-xs text-slate-400 mb-1.5">&gt; ISI PESAN TRANSMISI *</label>
+                                    <textarea id="signal-message" rows="4" required placeholder="Ketik pesan Anda untuk dikirimkan melintasi orbit..." class="w-full px-4 py-3 rounded-xl bg-space-900/90 border border-white/10 text-white text-sm focus:outline-none focus:border-cosmic-cyan transition resize-none"></textarea>
+                                </div>
+
+                                <button type="submit" id="transmit-btn" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cosmic-cyan to-cosmic-purple text-white font-bold text-sm tracking-wide hover:opacity-95 transition flex items-center justify-center gap-2.5 shadow-lg">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                    </svg>
+                                    <span>LUNCURKAN SINYAL TRANSMISI</span>
+                                </button>
+                            </form>
+
+                            <!-- Status Simulasi Pengiriman (Tersembunyi awalnya) -->
+                            <div id="transmit-feedback" class="hidden mt-5 p-4 rounded-xl bg-emerald-500/10 border border-emerald-400/40 text-emerald-300 text-xs space-y-1.5">
+                                <div class="flex items-center gap-2 font-bold text-sm text-emerald-400">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>SINYAL BERHASIL DITERIMA STASIUN ORBIT!</span>
+                                </div>
+                                <p id="feedback-detail" class="text-slate-300 leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="relative z-10 border-t border-white/10 py-8 px-4 sm:px-6 text-center">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-mono">
+            <p>© 2026 <span class="text-white font-semibold">Muhammad Faishal (Isal)</span>. Dirancang di Stasiun Orbit SIJA.</p>
+            <p class="text-cosmic-cyan/80">TELEMETRI STABIL // SEMUA SISTEM NORMAL</p>
+        </div>
+    </footer>
+
+    <!-- MODAL DETAIL PROYEK MISI -->
+    <div id="project-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-space-950/80 backdrop-blur-md">
+        <div class="space-glass border border-cosmic-cyan/40 rounded-3xl max-w-2xl w-full p-6 sm:p-8 relative shadow-2xl transform transition-all max-h-[90vh] overflow-y-auto">
+            <button id="close-modal-btn" aria-label="Tutup Modal" class="absolute top-5 right-5 p-2 rounded-xl bg-white/5 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 border border-white/10 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div id="modal-content" class="space-y-5">
+                <!-- Konten modal diisi secara dinamis oleh JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT INTERAKTIVITAS & ANIMASI -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // ==========================================
+            // 1. DATA KEAHLIAN & TEKNOLOGI (TECH ARSENAL)
+            // ==========================================
+            const skillsData = [
+                {
+                    name: 'HTML5, CSS3 & Tailwind',
+                    category: 'FRONTEND MODULE',
+                    level: 92,
+                    color: 'cyan',
+                    desc: 'Membangun antarmuka web modern yang responsif, semantik, dan interaktif dengan animasi CSS.',
+                    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />`
+                },
+                {
+                    name: 'PHP & MySQL Database',
+                    category: 'BACKEND CORE',
+                    level: 88,
+                    color: 'purple',
+                    desc: 'Pengembangan sistem CRUD dinamis, autentikasi pengguna, dan perancangan relasi basis data.',
+                    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />`
+                },
+                {
+                    name: 'Python Programming',
+                    category: 'LOGIC & AUTOMATION',
+                    level: 85,
+                    color: 'gold',
+                    desc: 'Pemrograman terstruktur, logika percabangan/perulangan, dan otomasi skrip pemrosesan data.',
+                    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />`
+                },
+                {
+                    name: 'Linux Server (Ubuntu / Rocky)',
+                    category: 'INFRASTRUCTURE ENGINE',
+                    level: 86,
+                    color: 'cyan',
+                    desc: 'Administrasi CLI, konfigurasi web server (Apache/Nginx), manajemen hak akses, dan keamanan dasar.',
+                    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />`
+                },
+                {
+                    name: 'Jaringan Komputer & Subnetting',
+                    category: 'ORBITAL TELEMETRY',
+                    level: 90,
+                    color: 'purple',
+                    desc: 'Perhitungan IPv4/VLSM, routing dasar, konfigurasi Cisco Packet Tracer, dan troubleshooting jaringan.',
+                    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />`
+                },
+                {
+                    name: 'JavaScript & Logika Algoritma',
+                    category: 'INTERACTIVE THRUSTER',
+                    level: 82,
+                    color: 'gold',
+                    desc: 'Manipulasi DOM interaktif, validasi formulir real-time, serta perancangan flowchart & pseudocode.',
+                    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />`
+                }
+            ];
+
+            const skillsGrid = document.getElementById('skills-grid');
+            skillsData.forEach(skill => {
+                const colorMap = {
+                    cyan: {
+                        text: 'text-cosmic-cyan',
+                        bg: 'bg-cosmic-cyan/15',
+                        bar: 'from-cosmic-cyan to-blue-400',
+                        border: 'border-cosmic-cyan/30'
+                    },
+                    purple: {
+                        text: 'text-purple-300',
+                        bg: 'bg-cosmic-purple/20',
+                        bar: 'from-cosmic-purple to-pink-400',
+                        border: 'border-cosmic-purple/30'
+                    },
+                    gold: {
+                        text: 'text-cosmic-gold',
+                        bg: 'bg-cosmic-gold/15',
+                        bar: 'from-cosmic-gold to-amber-500',
+                        border: 'border-cosmic-gold/30'
+                    }
+                };
+                const theme = colorMap[skill.color];
+
+                const card = document.createElement('div');
+                card.className = `space-glass space-glass-hover rounded-2xl p-6 border ${theme.border} flex flex-col justify-between`;
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="font-mono text-[10px] tracking-widest ${theme.text} uppercase">${skill.category}</span>
+                            <div class="w-9 h-9 rounded-xl ${theme.bg} ${theme.text} flex items-center justify-center">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">${skill.icon}</svg>
+                            </div>
+                        </div>
+                        <h3 class="font-display font-bold text-lg text-white mb-2">${skill.name}</h3>
+                        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed mb-5">${skill.desc}</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs font-mono mb-1.5">
+                            <span class="text-slate-400">KAPASITAS ENERGI</span>
+                            <span class="${theme.text} font-bold">${skill.level}%</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-space-950 overflow-hidden p-0.5 border border-white/5">
+                            <div class="h-full rounded-full bg-gradient-to-r ${theme.bar}" style="width: ${skill.level}%"></div>
+                        </div>
+                    </div>
+                `;
+                skillsGrid.appendChild(card);
+            });
+
+            // ==========================================
+            // 2. DATA PROYEK MISI (MISSION LOGS)
+            // ==========================================
+            const projectsData = [
+                {
+                    id: 'mission-01',
+                    code: 'LOG-01 // WEB SYSTEM',
+                    title: 'Aplikasi Manajemen Data PHP & MySQL',
+                    category: 'web',
+                    categoryLabel: 'Web Dev',
+                    summary: 'Sistem informasi berbasis web dengan fitur CRUD lengkap, autentikasi sesi aman, dan pencarian data real-time.',
+                    description: 'Membangun aplikasi pengelolaan data terstruktur menggunakan PHP Native dan basis data MySQL. Dilengkapi fitur login multi-level, validasi input sisi server, ekspor laporan sederhana, serta antarmuka responsif berbasis Tailwind CSS.',
+                    tech: ['PHP 8', 'MySQL', 'HTML/CSS', 'Tailwind CSS'],
+                    status: 'MISI SELESAI',
+                    highlights: [
+                        'Operasi Create, Read, Update, Delete (CRUD) teroptimasi',
+                        'Proteksi dasar terhadap SQL Injection dengan Prepared Statements',
+                        'Antarmuka bersih dan mudah digunakan di desktop maupun mobile'
+                    ]
+                },
+                {
+                    id: 'mission-02',
+                    code: 'LOG-02 // INOVASI SIJA',
+                    title: 'Sistem Filter Air Syclear & Monitoring',
+                    category: 'school',
+                    categoryLabel: 'Proyek Sekolah',
+                    summary: 'Proyek inovasi penyaringan air bersih terintegrasi dokumentasi web dan konsep pemantauan kualitas air.',
+                    description: 'Proyek kolaboratif jurusan SIJA yang merancang sistem filtrasi air bertingkat (Syclear) untuk menghasilkan air bersih layak pakai, disertai landing page edukasi, kalkulator estimasi kapasitas filter, dan log pemeliharaan.',
+                    tech: ['Rekayasa SIJA', 'Web Landing Page', 'JavaScript', 'IoT Concept'],
+                    status: 'PROTOTIPE AKTIF',
+                    highlights: [
+                        'Desain filtrasi multi-media untuk menjernihkan air keruh',
+                        'Halaman web interaktif untuk memantau jadwal penggantian filter',
+                        'Dipresentasikan sebagai proyek inovasi terapan sekolah'
+                    ]
+                },
+                {
+                    id: 'mission-03',
+                    code: 'LOG-03 // ALGORITMA',
+                    title: 'Simulasi Flowchart Seleksi (Flowgorithm)',
+                    category: 'school',
+                    categoryLabel: 'Proyek Sekolah',
+                    summary: 'Pemodelan logika percabangan bertingkat dan algoritma keputusan otomatis menggunakan Flowgorithm & Python.',
+                    description: 'Merancang alur algoritma seleksi peserta dan penilaian otomatis menggunakan diagram alir (flowchart) di Flowgorithm, kemudian mengonversinya ke dalam kode program Python dan JavaScript yang terstruktur.',
+                    tech: ['Flowgorithm', 'Python', 'Algoritma', 'Logika Percabangan'],
+                    status: 'MISI SELESAI',
+                    highlights: [
+                        'Visualisasi alur keputusan kondisi kompleks (If-Else Nested)',
+                        'Uji coba berbagai skenario input untuk memastikan akurasi output',
+                        'Dokumentasi pseudocode dan implementasi bahasa pemrograman'
+                    ]
+                },
+                {
+                    id: 'mission-04',
+                    code: 'LOG-04 // INFRASTRUKTUR',
+                    title: 'Deploy Web Server Linux Ubuntu & Rocky',
+                    category: 'network',
+                    categoryLabel: 'Sistem & Jaringan',
+                    summary: 'Konfigurasi server produksi berbasis Linux untuk hosting aplikasi web, database, dan manajemen virtual host.',
+                    description: 'Simulasi dan implementasi administrasi server menggunakan Ubuntu Server dan Rocky Linux. Mencakup instalasi LAMP/LEMP stack, pengaturan firewall (UFW/Firewalld), SSH hardening, serta manajemen Virtual Host.',
+                    tech: ['Ubuntu Server', 'Rocky Linux', 'Nginx/Apache', 'SSH & Firewall'],
+                    status: 'OPERASIONAL',
+                    highlights: [
+                        'Konfigurasi Virtual Host untuk menjalankan beberapa domain dalam satu server',
+                        'Pengamanan akses remote SSH dan pembatasan port firewall',
+                        'Pemantauan resource CPU, RAM, dan log akses server'
+                    ]
+                },
+                {
+                    id: 'mission-05',
+                    code: 'LOG-05 // TOPOLOGI JARINGAN',
+                    title: 'Perancangan Jaringan & Subnetting VLSM',
+                    category: 'network',
+                    categoryLabel: 'Sistem & Jaringan',
+                    summary: 'Desain arsitektur jaringan multi-divisi menggunakan metode VLSM untuk efisiensi alokasi alamat IP.',
+                    description: 'Merancang topologi jaringan skala gedung bertingkat dengan pembagian subnet menggunakan Variable Length Subnet Mask (VLSM), konfigurasi DHCP Server, dan pengujian konektivitas antar-VLAN.',
+                    tech: ['Subnetting VLSM', 'Cisco Packet Tracer', 'Routing', 'DHCP'],
+                    status: 'MISI SELESAI',
+                    highlights: [
+                        'Efisiensi penggunaan blok IPv4 sesuai kebutuhan host tiap departemen',
+                        'Simulasi routing statis dan dinamis antar router',
+                        'Dokumentasi tabel pengalamatan IP yang rapi dan sistematis'
+                    ]
+                },
+                {
+                    id: 'mission-06',
+                    code: 'LOG-06 // ORBIT UI',
+                    title: 'Portofolio Interaktif Tema Kosmik',
+                    category: 'web',
+                    categoryLabel: 'Web Dev',
+                    summary: 'Eksplorasi antarmuka bertema luar angkasa dengan efek glassmorphism, canvas bintang jatuh, dan animasi SVG.',
+                    description: 'Aplikasi web single-page responsif yang menggabungkan estetika futuristik luar angkasa dengan performa ringan tanpa ketergantungan framework berat.',
+                    tech: ['HTML5 Canvas', 'Tailwind CSS', 'Vanilla JS', 'SVG Animation'],
+                    status: 'ORBIT AKTIF',
+                    highlights: [
+                        'Partikel bintang berkelip & bintang jatuh acak berbasis HTML5 Canvas',
+                        'Desain adaptif penuh untuk layar ponsel, tablet, hingga desktop',
+                        'Interaksi modal dinamis dan simulasi terminal komunikasi'
+                    ]
+                }
+            ];
+
+            const projectsGrid = document.getElementById('projects-grid');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+
+            function renderProjects(filter = 'all') {
+                projectsGrid.innerHTML = '';
+                const filtered = filter === 'all' 
+                    ? projectsData 
+                    : projectsData.filter(p => p.category === filter);
+
+                filtered.forEach(project => {
+                    const card = document.createElement('article');
+                    card.className = 'space-glass space-glass-hover rounded-2xl p-6 border border-white/10 flex flex-col justify-between cursor-pointer group';
+                    card.setAttribute('data-id', project.id);
+
+                    const techBadges = project.tech.slice(0, 3).map(t => 
+                        `<span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-mono text-slate-300">${t}</span>`
+                    ).join('');
+
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-4">
+                                <span class="font-mono text-[11px] text-cosmic-cyan">${project.code}</span>
+                                <span class="px-2.5 py-0.5 rounded-full bg-cosmic-purple/20 border border-cosmic-purple/40 text-purple-200 text-[11px] font-medium">
+                                    ${project.categoryLabel}
+                                </span>
+                            </div>
+                            <h3 class="font-display font-bold text-xl text-white group-hover:text-cosmic-cyan transition mb-2.5">
+                                ${project.title}
+                            </h3>
+                            <p class="text-slate-400 text-sm leading-relaxed mb-5">
+                                ${project.summary}
+                            </p>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex flex-wrap gap-1.5">
+                                ${techBadges}
+                            </div>
+                            <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs font-mono">
+                                <span class="text-cosmic-gold flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-cosmic-gold"></span>
+                                    ${project.status}
+                                </span>
+                                <span class="text-cosmic-cyan group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                                    Buka Log &rarr;
+                                </span>
+                            </div>
+                        </div>
+                    `;
+
+                    card.addEventListener('click', () => openProjectModal(project));
+                    projectsGrid.appendChild(card);
+                });
+            }
+
+            // Inisialisasi proyek pertama kali
+            renderProjects('all');
+
+            // Event Listener Filter Kategori
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => {
+                        b.classList.remove('bg-cosmic-cyan', 'text-space-950', 'font-semibold');
+                        b.classList.add('space-glass', 'text-slate-300', 'font-medium');
+                    });
+                    btn.classList.remove('space-glass', 'text-slate-300', 'font-medium');
+                    btn.classList.add('bg-cosmic-cyan', 'text-space-950', 'font-semibold');
+                    
+                    renderProjects(btn.getAttribute('data-filter'));
+                });
+            });
+
+            // ==========================================
+            // 3. MODAL DETAIL PROYEK
+            // ==========================================
+            const modal = document.getElementById('project-modal');
+            const modalContent = document.getElementById('modal-content');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+
+            function openProjectModal(project) {
+                const allTechBadges = project.tech.map(t => 
+                    `<span class="px-3 py-1 rounded-xl bg-cosmic-cyan/10 border border-cosmic-cyan/30 text-xs font-mono text-cosmic-cyan">${t}</span>`
+                ).join('');
+
+                const highlightsList = project.highlights.map(item => 
+                    `<li class="flex items-start gap-2.5 text-sm text-slate-300">
+                        <span class="text-cosmic-gold mt-0.5">✦</span>
+                        <span>${item}</span>
+                    </li>`
+                ).join('');
+
+                modalContent.innerHTML = `
+                    <div class="pr-8">
+                        <span class="font-mono text-xs text-cosmic-cyan tracking-widest uppercase">${project.code} // ${project.categoryLabel}</span>
+                        <h3 class="font-display text-2xl sm:text-3xl font-bold text-white mt-1">${project.title}</h3>
+                    </div>
+
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cosmic-gold/15 border border-cosmic-gold/40 text-cosmic-gold font-mono text-xs">
+                        <span>STATUS: ${project.status}</span>
+                    </div>
+
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        ${project.description}
+                    </p>
+
+                    <div class="bg-space-950/70 rounded-2xl p-4 sm:p-5 border border-white/10 space-y-2.5">
+                        <h4 class="font-mono text-xs text-slate-400 uppercase tracking-wider">Pencapaian &amp; Fitur Utama Misi:</h4>
+                        <ul class="space-y-2">
+                            ${highlightsList}
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="font-mono text-xs text-slate-400 uppercase tracking-wider mb-2.5">Modul Teknologi Digunakan:</h4>
+                        <div class="flex flex-wrap gap-2">
+                            ${allTechBadges}
+                        </div>
+                    </div>
+                `;
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeProjectModal() {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.style.overflow = '';
+            }
+
+            closeModalBtn.addEventListener('click', closeProjectModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeProjectModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                    closeProjectModal();
+                }
+            });
+
+            // ==========================================
+            // 4. INTERAKTIVITAS ASTRONOT & FORM TRANSMISI
+            // ==========================================
+            const astronautEl = document.getElementById('astronaut-interactive');
+            const astroSpeech = document.getElementById('astro-speech');
+            const quotes = [
+                '"Sistem siap, Komandan! 🚀"',
+                '"Menjelajahi galaksi kode... ✨"',
+                '"Server Linux dalam kondisi prima! 🛰️"',
+                '"Jangan lupa cek subnetting! 🌐"'
+            ];
+            let quoteIdx = 0;
+
+            astronautEl.addEventListener('click', () => {
+                astroSpeech.textContent = quotes[quoteIdx];
+                quoteIdx = (quoteIdx + 1) % quotes.length;
+                
+                astroSpeech.classList.remove('opacity-0', 'scale-90');
+                astroSpeech.classList.add('opacity-100', 'scale-100');
+
+                clearTimeout(window.speechTimer);
+                window.speechTimer = setTimeout(() => {
+                    astroSpeech.classList.remove('opacity-100', 'scale-100');
+                    astroSpeech.classList.add('opacity-0', 'scale-90');
+                }, 2600);
+            });
+
+            // Simulasi Pengiriman Sinyal Kontak
+            const signalForm = document.getElementById('signal-form');
+            const transmitBtn = document.getElementById('transmit-btn');
+            const transmitFeedback = document.getElementById('transmit-feedback');
+            const feedbackDetail = document.getElementById('feedback-detail');
+
+            signalForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('sender-name').value.trim();
+                const email = document.getElementById('sender-email').value.trim();
+
+                // Animasi loading pengiriman
+                const originalBtnHTML = transmitBtn.innerHTML;
+                transmitBtn.disabled = true;
+                transmitBtn.innerHTML = `
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>MENGIRIM PAKET DATA KE ORBIT...</span>
+                `;
+
+                setTimeout(() => {
+                    transmitBtn.disabled = false;
+                    transmitBtn.innerHTML = originalBtnHTML;
+                    
+                    feedbackDetail.textContent = `Terima kasih, ${name}! Transmisi Anda dari frekuensi (${email}) telah tercatat dalam log komunikasi Muhammad Faishal. Balasan akan segera dikirimkan.`;
+                    transmitFeedback.classList.remove('hidden');
+                    signalForm.reset();
+
+                    setTimeout(() => {
+                        transmitFeedback.classList.add('hidden');
+                    }, 7000);
+                }, 1100);
+            });
+
+            // ==========================================
+            // 5. NAVIGASI MOBILE & EFEK KURSOR BINTANG
+            // ==========================================
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const iconOpen = document.getElementById('menu-icon-open');
+            const iconClose = document.getElementById('menu-icon-close');
+            const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+
+            function toggleMobileMenu() {
+                const isHidden = mobileMenu.classList.contains('hidden');
+                if (isHidden) {
+                    mobileMenu.classList.remove('hidden');
+                    iconOpen.classList.add('hidden');
+                    iconClose.classList.remove('hidden');
+                } else {
+                    mobileMenu.classList.add('hidden');
+                    iconOpen.classList.remove('hidden');
+                    iconClose.classList.add('hidden');
+                }
+            }
+
+            mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (!mobileMenu.classList.contains('hidden')) toggleMobileMenu();
+                });
+            });
+
+            // Efek Cahaya Kursor
+            const cursorGlow = document.getElementById('cursor-glow');
+            window.addEventListener('mousemove', (e) => {
+                cursorGlow.style.left = `${e.clientX}px`;
+                cursorGlow.style.top = `${e.clientY}px`;
+            });
+
+            // ==========================================
+            // 6. CANVAS BINTANG BERKELIP & BINTANG JATUH
+            // ==========================================
+            const canvas = document.getElementById('starfield-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let stars = [];
+            let shootingStars = [];
+
+            function resizeCanvas() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+                initStars();
+            }
+
+            function initStars() {
+                stars = [];
+                const starCount = Math.min(Math.floor((width * height) / 7500), 220);
+                const colors = ['#ffffff', '#00f0ff', '#ffd166', '#d8b4fe'];
+
+                for (let i = 0; i < starCount; i++) {
+                    stars.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: Math.random() * 1.6 + 0.3,
+                        alpha: Math.random(),
+                        speed: (Math.random() * 0.015) + 0.004,
+                        direction: Math.random() > 0.5 ? 1 : -1,
+                        color: colors[Math.floor(Math.random() * colors.length)]
+                    });
+                }
+            }
+
+            function spawnShootingStar() {
+                if (shootingStars.length < 2 && Math.random() < 0.015) {
+                    shootingStars.push({
+                        x: Math.random() * width * 0.85,
+                        y: Math.random() * height * 0.4,
+                        len: Math.random() * 90 + 50,
+                        speed: Math.random() * 9 + 7,
+                        angle: Math.PI / 4, // 45 derajat
+                        opacity: 1
+                    });
+                }
+            }
+
+            function animateSpace() {
+                ctx.clearRect(0, 0, width, height);
+
+                // Gambar Bintang Berkelip
+                for (let s of stars) {
+                    s.alpha += s.speed * s.direction;
+                    if (s.alpha >= 1) {
+                        s.alpha = 1;
+                        s.direction = -1;
+                    } else if (s.alpha <= 0.15) {
+                        s.alpha = 0.15;
+                        s.direction = 1;
+                    }
+
+                    ctx.save();
+                    ctx.globalAlpha = s.alpha;
+                    ctx.fillStyle = s.color;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // Gambar Bintang Jatuh
+                spawnShootingStar();
+                for (let i = shootingStars.length - 1; i >= 0; i--) {
+                    const ss = shootingStars[i];
+                    ss.x += Math.cos(ss.angle) * ss.speed;
+                    ss.y += Math.sin(ss.angle) * ss.speed;
+                    ss.opacity -= 0.016;
+
+                    if (ss.opacity <= 0 || ss.x > width || ss.y > height) {
+                        shootingStars.splice(i, 1);
+                        continue;
+                    }
+
+                    const tailX = ss.x - Math.cos(ss.angle) * ss.len;
+                    const tailY = ss.y - Math.sin(ss.angle) * ss.len;
+
+                    const grad = ctx.createLinearGradient(ss.x, ss.y, tailX, tailY);
+                    grad.addColorStop(0, `rgba(0, 240, 255, ${ss.opacity})`);
+                    grad.addColorStop(0.4, `rgba(255, 255, 255, ${ss.opacity * 0.6})`);
+                    grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                    ctx.save();
+                    ctx.strokeStyle = grad;
+                    ctx.lineWidth = 2;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(ss.x, ss.y);
+                    ctx.lineTo(tailX, tailY);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                requestAnimationFrame(animateSpace);
+            }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            animateSpace();
+        });
+    </script>
+</body>
+</html>
